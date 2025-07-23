@@ -1,5 +1,5 @@
-import dotenv from 'dotenv'; 
-dotenv.config()
+import dotenv from 'dotenv';
+dotenv.config();
 import express, { json } from 'express';
 const app = express();
 
@@ -30,12 +30,16 @@ app.use((req, res, next) => {
 app.post('/validar-dia', async (req, res) => {
   const { fecha } = req.body;
 
-  if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-    return res.status(400).json({ error: 'Formato de fecha inválido (use YYYY-MM-DD)' });
+  if (!fecha || !/^\d{2}-\d{2}-\d{4}$/.test(fecha)) {
+    return res.status(400).json({ error: 'Formato de fecha inválido (use DD-MM-YYYY)' });
   }
 
   try {
-    const fechaConsulta = new Date(fecha + "T00:00:00");
+    // Convertir de DD-MM-YYYY a YYYY-MM-DD
+    const partes = fecha.split('-');
+    const fechaConvertida = `${partes[2]}-${partes[1]}-${partes[0]}`;
+
+    const fechaConsulta = new Date(fechaConvertida + "T00:00:00");
 
     // Función para obtener número de semana del año
     const obtenerNumeroSemana = (date) => {
@@ -65,7 +69,7 @@ app.post('/validar-dia', async (req, res) => {
       finBloqueo.setHours(6, 0, 0, 0); // 6:00 AM
 
       // Evaluamos si la fecha cae dentro del rango
-      const fechaEvaluada = new Date(fecha + "T12:00:00"); // hora neutra
+      const fechaEvaluada = new Date(fechaConvertida + "T12:00:00"); // hora neutra
 
       if (fechaEvaluada >= inicioBloqueo && fechaEvaluada < finBloqueo) {
         return res.status(423).json({
